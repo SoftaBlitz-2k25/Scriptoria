@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PDF Reader</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; background: #f4f4f4; }
+    #controls { margin: 10px; }
+    canvas { border: 1px solid #333; margin-top: 10px; background: white; }
+    button { padding: 6px 12px; margin: 0 5px; }
+    #drop-area {
+      margin: 15px auto;
+      padding: 20px;
+      border: 2px dashed #666;
+      border-radius: 6px;
+      width: 60%;
+      background: #fff;
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+  <h2>PDF Reader</h2>
+
+  <div id="controls">
+    <button id="open">📂 Open PDF</button>
+    <button id="prev">⬅ Prev</button>
+    <button id="next">Next ➡</button>
+    <span>Page: <span id="page-num">0</span> / <span id="page-count">0</span></span>
+  </div>
+
+  <div id="drop-area">Drag & Drop PDF here</div>
+  <canvas id="pdf-render"></canvas>
+
+  <script type="module" src="./renderer.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+# Node modules
+node_modules/
+
+# Electron distribution/build
+dist/
+out/
+*.exe
+*.dll
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VSCode settings
+.vscode/
