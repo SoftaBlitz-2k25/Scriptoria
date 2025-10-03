@@ -67,11 +67,39 @@ body {
     margin-right: 5px;
     border-radius: 5px;
     background: #e0e0e0;
+    position: relative;
   }
   
   #tabs li.active {
     background: #007bff;
     color: white;
+  }
+
+  /* Close button for tabs */
+  #tabs li .close-btn {
+    position: absolute;
+    top: 5px;
+    right: 6px;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    text-align: center;
+    border-radius: 50%;
+    font-weight: bold;
+    color: #555;
+    background: rgba(255,255,255,0.8);
+    border: 1px solid #bbb;
+    cursor: pointer;
+  }
+  #tabs li .close-btn:hover {
+    background: #ffdddd;
+    color: #a00;
+    border-color: #a00;
+  }
+  /* Add space for the close icon so it doesn't overlap the label */
+  #tabs li span:first-child {
+    display: inline-block;
+    padding-right: 22px;
   }
   
   #layout {
@@ -80,7 +108,11 @@ body {
   }
   
   #sidebar {
-    width: 250px;
+    width: 270px;
+    min-width: 270px;
+    max-width: 270px;
+    flex: 0 0 270px;
+    flex-shrink: 0;
     border-right: 1px solid #ccc;
     overflow-y: auto;
     background: var(--toolbar-bg);
@@ -100,7 +132,7 @@ body {
     flex: 1;
     padding: 6px 8px;
     border: 1px solid #ccc;
-    border-radius: 6px;
+   
     background: #fff;
     cursor: pointer;
   }

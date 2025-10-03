@@ -1,10 +1,17 @@
 // Global variables
 let pdfDocs = [];
 let currentTab = 0;
+let thumbnailsDocIndex = null; // Index of the doc whose thumbnails remain shown
 let viewMode = 'single'; // 'single' | 'split' | 'continuous'
 
 // Initialize PDF.js
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// Bookmarks module
+import * as UserBookmarks from './features/bookmarks.js';
+import * as UserHighlights from './features/highlights.js';
+import * as UserUnderlines from './features/underlines.js';
+import * as UserStickynotes from './features/stickynotes.js';
 
 // Core PDF functionality
 async function loadPDF(filePath) {
@@ -37,11 +44,22 @@ async function loadPDF(filePath) {
 
     pdfDocs.push(pdfDoc);
     currentTab = pdfDocs.length - 1;
-    
+
     createTab(pdfDoc.fileName);
     await renderPage();
-    await generateThumbnails(pdf);
+
+    // Always set thumbnails to the currently opened PDF
+    thumbnailsDocIndex = currentTab;
+    await generateThumbnailsForDoc(thumbnailsDocIndex);
     await loadBookmarks(pdf);
+    // Initialize user bookmarks store for this file
+    await UserBookmarks.initForFile(pdfDoc.filePath);
+    // Ensure sidecar files exist
+    await window.electronAPI?.initAllAnnotations?.(pdfDoc.filePath);
+    // Load other stores
+    await UserHighlights.initForFile(pdfDoc.filePath);
+    await UserUnderlines.initForFile(pdfDoc.filePath);
+    await UserStickynotes.initForFile(pdfDoc.filePath);
     
     return pdfDoc;
   } catch (error) {
@@ -80,6 +98,12 @@ async function renderPage() {
       // eslint-disable-next-line no-await-in-loop
       await renderSingleCanvas(canvas, pdf, i, scale, rotation);
     }
+    // After rendering all pages, scroll the current page into view
+    const canvases = Array.from(container.querySelectorAll('canvas'));
+    const targetCanvas = canvases[pageNum - 1];
+    if (targetCanvas) {
+      targetCanvas.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 
   // Update page counter and zoom
@@ -100,12 +124,26 @@ async function renderSingleCanvas(canvas, pdf, pageNumber, scale, rotation) {
 function createTab(fileName) {
   const tabsContainer = document.getElementById('tabs');
   const tab = document.createElement('li');
-  tab.textContent = fileName;
-  tab.addEventListener('click', () => {
-    // Switch to this tab
+  const label = document.createElement('span');
+  label.textContent = fileName;
+  const close = document.createElement('span');
+  close.className = 'close-btn';
+  close.textContent = '×';
+  close.title = 'Close';
+  close.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const tabIndex = Array.from(tabsContainer.children).indexOf(tab);
+    closeTab(tabIndex);
+  });
+  tab.appendChild(label);
+  tab.appendChild(close);
+  tab.addEventListener('click', async () => {
+    // Switch to this tab and update thumbnails to match
     const tabIndex = Array.from(tabsContainer.children).indexOf(tab);
     currentTab = tabIndex;
-    renderPage();
+    thumbnailsDocIndex = currentTab;
+    await generateThumbnailsForDoc(thumbnailsDocIndex);
+    await renderPage();
     
     // Update active tab styling
     document.querySelectorAll('#tabs li').forEach(t => t.classList.remove('active'));
@@ -119,14 +157,62 @@ function createTab(fileName) {
   tabsContainer.appendChild(tab);
 } 
 
+function closeTab(index) {
+  if (index < 0 || index >= pdfDocs.length) return;
+  const tabsContainer = document.getElementById('tabs');
+  // remove doc
+  pdfDocs.splice(index, 1);
+  // remove tab element
+  const node = tabsContainer.children[index];
+  if (node) tabsContainer.removeChild(node);
+  // adjust indices
+  if (thumbnailsDocIndex !== null) {
+    if (thumbnailsDocIndex === index) {
+      thumbnailsDocIndex = pdfDocs.length > 0 ? 0 : null;
+      if (thumbnailsDocIndex !== null) {
+        generateThumbnailsForDoc(thumbnailsDocIndex);
+      } else {
+        const thumbContainer = document.getElementById('thumbnails');
+        if (thumbContainer) thumbContainer.innerHTML = '';
+      }
+    } else if (thumbnailsDocIndex > index) {
+      thumbnailsDocIndex -= 1;
+    }
+  }
+  if (pdfDocs.length === 0) {
+    currentTab = 0;
+    const container = document.getElementById('canvas-container');
+    if (container) container.innerHTML = '';
+    document.getElementById('page-num').value = 0;
+    document.getElementById('page-count').textContent = 0;
+    document.getElementById('zoom-display').textContent = '100%';
+    return;
+  }
+  if (currentTab === index) {
+    currentTab = Math.max(0, index - 1);
+  } else if (currentTab > index) {
+    currentTab -= 1;
+  }
+  // update active class
+  document.querySelectorAll('#tabs li').forEach(t => t.classList.remove('active'));
+  const newActive = tabsContainer.children[currentTab];
+  if (newActive) newActive.classList.add('active');
+  renderPage();
+}
+
 // Generate Thumbnails
-async function generateThumbnails(pdf) {
+async function generateThumbnailsForDoc(docIndex) {
+  const target = pdfDocs[docIndex];
+  if (!target) return;
+  const pdf = target.pdf;
   const thumbContainer = document.getElementById("thumbnails");
   thumbContainer.innerHTML = "";
 
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const viewport = page.getViewport({ scale: 0.3, rotation: 0 });
+    const wrapper = document.createElement('div');
+    wrapper.style.position = 'relative';
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     canvas.height = viewport.height;
@@ -134,9 +220,26 @@ async function generateThumbnails(pdf) {
 
     await page.render({ canvasContext: ctx, viewport }).promise;
     canvas.addEventListener("click", () => {
-      goToPage(i);
+      goToPageOnDoc(docIndex, i);
     });
-    thumbContainer.appendChild(canvas);
+    // Bookmark toggle button overlay
+    const bmBtn = document.createElement('button');
+    bmBtn.textContent = UserBookmarks.isBookmarked(target.filePath, i) ? '🔖' : '📑';
+    bmBtn.title = 'Toggle bookmark';
+    bmBtn.style.position = 'absolute';
+    bmBtn.style.top = '4px';
+    bmBtn.style.right = '4px';
+    bmBtn.style.padding = '2px 4px';
+    bmBtn.style.fontSize = '14px';
+    bmBtn.style.cursor = 'pointer';
+    bmBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const nowBookmarked = await UserBookmarks.toggle(target.filePath, i);
+      bmBtn.textContent = nowBookmarked ? '🔖' : '📑';
+    });
+    wrapper.appendChild(canvas);
+    wrapper.appendChild(bmBtn);
+    thumbContainer.appendChild(wrapper);
   }
 }
 
@@ -158,6 +261,66 @@ async function loadBookmarks(pdf) {
       });
       bmContainer.appendChild(div);
     });
+  }
+}
+
+// Render thumbnails only for user-bookmarked pages of a document
+async function generateBookmarkThumbnails(docIndex) {
+  const doc = pdfDocs[docIndex];
+  if (!doc) return;
+  const pdf = doc.pdf;
+  const bmContainer = document.getElementById("bookmarks");
+  if (!bmContainer) return;
+  bmContainer.innerHTML = "";
+
+  // Get user bookmarks for this file
+  const bookmarkedPages = UserBookmarks.get(doc.filePath);
+  if (bookmarkedPages.length === 0) {
+    const msg = document.createElement('div');
+    msg.textContent = 'No bookmarked pages. Click the bookmark icon on thumbnails to add pages.';
+    msg.classList.add('bookmark-item');
+    bmContainer.appendChild(msg);
+    return;
+  }
+
+  for (const pageNum of bookmarkedPages) {
+    // eslint-disable-next-line no-await-in-loop
+    const page = await pdf.getPage(pageNum);
+    const viewport = page.getViewport({ scale: 0.3, rotation: 0 });
+    const wrapper = document.createElement('div');
+    wrapper.style.padding = '6px';
+    wrapper.style.borderBottom = '1px solid #ddd';
+    const label = document.createElement('div');
+    label.textContent = `Page ${pageNum}`;
+    label.style.fontSize = '12px';
+    label.style.marginBottom = '4px';
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+    // eslint-disable-next-line no-await-in-loop
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    canvas.style.width = '100%';
+    canvas.style.height = 'auto';
+    canvas.style.border = '1px solid #bbb';
+    canvas.addEventListener('click', () => {
+      goToPageOnDoc(docIndex, pageNum);
+    });
+    // Also show bookmark toggle on each bookmarked page entry
+    const bmBtn = document.createElement('button');
+    bmBtn.textContent = '🔖';
+    bmBtn.title = 'Remove bookmark';
+    bmBtn.style.marginLeft = '6px';
+    bmBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      await UserBookmarks.remove(doc.filePath, pageNum);
+      // Refresh the list
+      await generateBookmarkThumbnails(docIndex);
+    });
+    wrapper.appendChild(label);
+    wrapper.appendChild(canvas);
+    wrapper.appendChild(bmBtn);
+    bmContainer.appendChild(wrapper);
   }
 }
 
@@ -222,15 +385,15 @@ if (localStorage.getItem('darkMode') === 'true') {
 function goToPrevPage() {
   if (!pdfDocs[currentTab] || pdfDocs[currentTab].pageNum <= 1) return;
   const step = viewMode === 'split' ? 2 : 1;
-  pdfDocs[currentTab].pageNum = Math.max(1, pdfDocs[currentTab].pageNum - step);
-  renderPage();
+  const target = Math.max(1, pdfDocs[currentTab].pageNum - step);
+  goToPage(target);
 }
 
 function goToNextPage() {
   if (!pdfDocs[currentTab] || pdfDocs[currentTab].pageNum >= pdfDocs[currentTab].pdf.numPages) return;
   const step = viewMode === 'split' ? 2 : 1;
-  pdfDocs[currentTab].pageNum = Math.min(pdfDocs[currentTab].pdf.numPages, pdfDocs[currentTab].pageNum + step);
-  renderPage();
+  const target = Math.min(pdfDocs[currentTab].pdf.numPages, pdfDocs[currentTab].pageNum + step);
+  goToPage(target);
 }
 
 function rotateLeft() {
@@ -295,6 +458,21 @@ async function goToPage(pageNumber) {
     // Reset to current page if invalid
     document.getElementById('page-num').value = pdfDocs[currentTab].pageNum;
   }
+}
+
+async function goToPageOnDoc(docIndex, pageNumber) {
+  const doc = pdfDocs[docIndex];
+  if (!doc) return;
+  const totalPages = doc.pdf.numPages;
+  if (pageNumber < 1 || pageNumber > totalPages) return;
+  doc.pageNum = pageNumber;
+  // focus this tab
+  currentTab = docIndex;
+  const tabsContainer = document.getElementById('tabs');
+  document.querySelectorAll('#tabs li').forEach(t => t.classList.remove('active'));
+  const newActive = tabsContainer.children[currentTab];
+  if (newActive) newActive.classList.add('active');
+  await renderPage();
 }
 
 // Sidebar tab functionality
@@ -377,6 +555,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if ((pdfDocs[currentTab].pageNum % 2) === 0) {
         pdfDocs[currentTab].pageNum = Math.max(1, pdfDocs[currentTab].pageNum - 1);
       }
+      // Force 75% zoom in split view
+      pdfDocs[currentTab].scale = 0.75;
     }
     renderPage();
   });
@@ -409,7 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Sidebar tabs
-  const sidebarButtons = document.querySelectorAll('.tab-buttons button');
+    const sidebarButtons = document.querySelectorAll('.tab-buttons button');
   sidebarButtons.forEach(button => {
     button.addEventListener('click', () => {
       const target = button.getAttribute('data-target');
@@ -417,6 +597,12 @@ document.addEventListener('DOMContentLoaded', () => {
       // active state
       sidebarButtons.forEach(b => b.classList.remove('active'));
       button.classList.add('active');
+
+      // When switching to Bookmarks pane, show only bookmark pages as thumbnails
+      if (target === 'bookmarks') {
+        const docIndex = typeof thumbnailsDocIndex === 'number' ? thumbnailsDocIndex : currentTab;
+        generateBookmarkThumbnails(docIndex);
+      }
     });
   });
   // Set initial active tab
