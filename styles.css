@@ -272,3 +272,170 @@ body {
   /* Optional: clearer selection background */
   .textLayer ::selection { background: rgba(180, 213, 255, 0.35); }
   .textLayer ::-moz-selection { background: rgba(180, 213, 255, 0.35); }
+
+  /* Side hover effects */
+
+/* Dictionary Tab - Blue */
+.tab-dictionary {
+  position: fixed;
+  background: linear-gradient(135deg, #90caf9 0%, #42a5f5 100%);
+  padding: 12px 15px;
+  border-radius: 12px 0 0 12px;
+  box-shadow: -4px 4px 12px rgba(0,0,0,0.2);
+  font-size: 14px;
+  font-weight: 600;
+  width: 50px;
+  cursor: pointer;
+  right: -10px;
+  top: 150px;
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  z-index: 1000;
+  border: 2px solid #1976d2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.tab-dictionary:hover {
+  right: 0;
+  width: 180px;
+  box-shadow: -8px 8px 24px rgba(0,0,0,0.3);
+  background: linear-gradient(135deg, #42a5f5 0%, #1976d2 100%);
+}
+
+.tab-dictionary:active {
+  transform: scale(0.98);
+}
+
+/* Translation Tab - Green */
+.tab-translation {
+  position: fixed;
+  background: linear-gradient(135deg, #a5d6a7 0%, #66bb6a 100%);
+  padding: 12px 15px;
+  border-radius: 12px 0 0 12px;
+  box-shadow: -4px 4px 12px rgba(0,0,0,0.2);
+  font-size: 14px;
+  font-weight: 600;
+  width: 50px;
+  cursor: pointer;
+  right: -10px;
+  top: 240px;
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  z-index: 1000;
+  border: 2px solid #388e3c;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.tab-translation:hover {
+  right: 0;
+  width: 180px;
+  box-shadow: -8px 8px 24px rgba(0,0,0,0.3);
+  background: linear-gradient(135deg, #66bb6a 0%, #388e3c 100%);
+}
+
+.tab-translation:active {
+  transform: scale(0.98);
+}
+
+/* QnA Tab - Orange */
+.tab-qna {
+  position: fixed;
+  background: linear-gradient(135deg, #ffcc80 0%, #ffa726 100%);
+  padding: 12px 15px;
+  border-radius: 12px 0 0 12px;
+  box-shadow: -4px 4px 12px rgba(0,0,0,0.2);
+  font-size: 14px;
+  font-weight: 600;
+  width: 50px;
+  cursor: pointer;
+  right: -10px;
+  top: 330px;
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  z-index: 1000;
+  border: 2px solid #f57c00;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.tab-qna:hover {
+  right: 0;
+  width: 180px;
+  box-shadow: -8px 8px 24px rgba(0,0,0,0.3);
+  background: linear-gradient(135deg, #ffa726 0%, #f57c00 100%);
+}
+
+.tab-qna:active {
+  transform: scale(0.98);
+}
+
+/* Summarizer Tab - Purple */
+.tab-summarizer {
+  position: fixed;
+  background: linear-gradient(135deg, #ce93d8 0%, #ab47bc 100%);
+  padding: 12px 15px;
+  border-radius: 12px 0 0 12px;
+  box-shadow: -4px 4px 12px rgba(0,0,0,0.2);
+  font-size: 14px;
+  font-weight: 600;
+  width: 50px;
+  cursor: pointer;
+  right: -10px;
+  top: 420px;
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  z-index: 1000;
+  border: 2px solid #7b1fa2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.tab-summarizer:hover {
+  right: 0;
+  width: 180px;
+  box-shadow: -8px 8px 24px rgba(0,0,0,0.3);
+  background: linear-gradient(135deg, #ab47bc 0%, #7b1fa2 100%);
+}
+
+.tab-summarizer:active {
+  transform: scale(0.98);
+}
+
+/* Icon styling */
+.tab-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+/* Text styling - hidden initially */
+.tab-text {
+  line-height: 1.4;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease 0.1s;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* Show text on hover */
+.tab-dictionary:hover .tab-text,
+.tab-translation:hover .tab-text,
+.tab-qna:hover .tab-text,
+.tab-summarizer:hover .tab-text {
+  opacity: 1;
+}
+
+/* Icon bounce on hover */
+.tab-dictionary:hover .tab-icon,
+.tab-translation:hover .tab-icon,
+.tab-qna:hover .tab-icon,
+.tab-summarizer:hover .tab-icon {
+  transform: scale(1.1);
+}
