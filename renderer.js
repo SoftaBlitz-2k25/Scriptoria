@@ -14,7 +14,7 @@ import * as UserUnderlines from './features/underlines.js';
 import * as UserStickynotes from './features/stickynotes.js';
 import { ensureOCRTextLayer, getOCRPageText } from './build/ocr.js';
 import { setPageText, appendToPageText } from './features/text-store.js';
-import { speakSelection, speakPage, speakDocument, stop, getSpeakingState } from './features/tts.js';
+import { exportCurrentWithAnnotations } from './advance/exportToPdf.js';
 
 // Core PDF functionality
 async function loadPDF(filePath) {
@@ -227,11 +227,28 @@ async function buildTextLayer(wrapper, page, viewport) {
 
 function getCurrentWrapperAndPage() {
   const container = document.getElementById('canvas-container');
-  // pick current visible canvas by current page number
-  const { pageNum } = pdfDocs[currentTab] || { pageNum: 1 };
-  // wrappers are in same order as canvases
   const wrappers = Array.from(container.querySelectorAll('.page-wrapper'));
-  const wrapper = viewMode === 'single' ? wrappers[0] : wrappers[pageNum - 1] || wrappers[0];
+  if (wrappers.length === 0) return { wrapper: null, pageNum: 1 };
+
+  // Prefer wrapper determined by current text selection when possible
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0) {
+    const range = sel.getRangeAt(0);
+    let node = range.startContainer;
+    while (node && node !== container) {
+      if (node instanceof HTMLElement && node.classList.contains('page-wrapper')) {
+        const idx = wrappers.indexOf(node);
+        if (idx >= 0) {
+          return { wrapper: node, pageNum: idx + 1 };
+        }
+      }
+      node = node.parentNode;
+    }
+  }
+
+  // Fallback to current page index
+  const { pageNum } = pdfDocs[currentTab] || { pageNum: 1 };
+  const wrapper = viewMode === 'single' ? wrappers[0] : (wrappers[pageNum - 1] || wrappers[0]);
   return { wrapper, pageNum };
 }
 
@@ -825,6 +842,19 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('fullscreen').addEventListener('click', toggleFullscreen);
   document.getElementById('highlight').addEventListener('click', highlightSelection);
   document.getElementById('underline')?.addEventListener('click', underlineSelection);
+  document.getElementById('export')?.addEventListener('click', async () => {
+    const info = pdfDocs[currentTab];
+    if (!info) {
+      alert('No PDF loaded. Please open a PDF first.');
+      return;
+    }
+    try {
+      await exportCurrentWithAnnotations(info);
+    } catch (e) {
+      console.error('Export failed', e);
+      alert('Export failed.');
+    }
+  });
   document.getElementById('save')?.addEventListener('click', async () => {
     const fileKey = pdfDocs[currentTab]?.filePath;
     if (!fileKey) return;
@@ -1000,31 +1030,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // TTS functionality tab click (toggle start/stop)
-  document.getElementById('translation-tab')?.addEventListener('click', () => {
-    // If currently speaking, stop it
-    if (getSpeakingState()) {
-      stop();
-      return;
-    }
-
-    const fileKey = pdfDocs[currentTab]?.filePath;
-    if (!fileKey) {
-      alert('No PDF loaded. Please open a PDF first.');
-      return;
-    }
-
-    // Check if there's a text selection
-    const selection = window.getSelection();
-    const selectedText = selection.toString().trim();
-    
-    if (selectedText) {
-      // Speak selected text
-      speakSelection();
-    } else {
-      // Speak current page
-      const currentPage = pdfDocs[currentTab]?.pageNum || 1;
-      speakPage(fileKey, currentPage);
-    }
-  });
+  // Translation/TTS feature removed
 });
