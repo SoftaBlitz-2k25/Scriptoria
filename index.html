@@ -12,6 +12,7 @@
   <div id="toolbar">
     <button id="open"> <img src="icons/folder.svg" alt="Open" class="icon" /> Open</button>
     <button id="save"><img src="icons/save.svg" alt="save" class="icon" /> Save</button>
+    <button id="export"><img src="icons/save.svg" alt="export" class="icon" /> Export</button>
     <button id="zoom-out"><img src="icons/zoom-out.svg" alt="zoom-out" class="icon" /> Zoom Out</button>
     <span id="zoom-display">100%</span>
     <button id="zoom-in"><img src="icons/zoom-in.svg" alt="zoom-in" class="icon" />Zoom in</button>
@@ -25,6 +26,8 @@
     <button id="dark-mode-toggle">
       <img src="icons/day.svg" alt="Open" class="icon" /> / 
       <img src="icons/night.svg" alt="Open" class="icon" /> Mode</button>
+
+    
   </div>
 
   <!-- containing multiple pdfs tabs (container) -->
@@ -75,11 +78,7 @@
       <span class="tab-text">Fullscreen</span>
     </div>
 
-    <!-- Translation -->
-    <div class="tab-translation" id="translation-tab">
-      <span class="tab-icon"><img src="icons/audio-play.svg" alt="audio-on" class="icon" /></span>
-      <span class="tab-text">Audio</span>
-    </div>
+    
 
     <!-- QnA -->
     <div class="tab-qna">
@@ -92,9 +91,17 @@
       <span class="tab-icon"><img src="icons/notes.svg" alt="notes" class="icon" /></span>
       <span class="tab-text">Summarizer</span>
     </div>
+
+    <!-- Translation -->
+    <div class="tab-translation" id="translation-tab">
+      <span class="tab-icon"><img src="icons/audio-play.svg" alt="audio-on" class="icon" /></span>
+      <span class="tab-text">Audio</span>
+    </div>
     
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <script type="module" src="features/bookmarks.js"></script>
   <script type="module" src="advance/dictionary.js"></script>
+  <script type="module" src="advance/exportToPdf.js"></script>
   <script type="module" src="renderer.js"></script>
 </body>
 </html>

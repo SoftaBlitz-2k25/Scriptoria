@@ -13,8 +13,9 @@ import * as UserHighlights from './features/highlights.js';
 import * as UserUnderlines from './features/underlines.js';
 import * as UserStickynotes from './features/stickynotes.js';
 import { ensureOCRTextLayer, getOCRPageText } from './build/ocr.js';
-import { setPageText, appendToPageText } from './features/text-store.js';
-import { speakSelection, speakPage, speakDocument, stop, getSpeakingState } from './features/tts.js';
+import { setPageText, appendToPageText, getPageText } from './features/text-store.js';
+import { exportCurrentWithAnnotations } from './advance/exportToPdf.js';
+import { speakSelection, speakPage, stop, getSpeakingState } from './features/tts.js';
 
 // Core PDF functionality
 async function loadPDF(filePath) {
@@ -227,11 +228,28 @@ async function buildTextLayer(wrapper, page, viewport) {
 
 function getCurrentWrapperAndPage() {
   const container = document.getElementById('canvas-container');
-  // pick current visible canvas by current page number
-  const { pageNum } = pdfDocs[currentTab] || { pageNum: 1 };
-  // wrappers are in same order as canvases
   const wrappers = Array.from(container.querySelectorAll('.page-wrapper'));
-  const wrapper = viewMode === 'single' ? wrappers[0] : wrappers[pageNum - 1] || wrappers[0];
+  if (wrappers.length === 0) return { wrapper: null, pageNum: 1 };
+
+  // Prefer wrapper determined by current text selection when possible
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0) {
+    const range = sel.getRangeAt(0);
+    let node = range.startContainer;
+    while (node && node !== container) {
+      if (node instanceof HTMLElement && node.classList.contains('page-wrapper')) {
+        const idx = wrappers.indexOf(node);
+        if (idx >= 0) {
+          return { wrapper: node, pageNum: idx + 1 };
+        }
+      }
+      node = node.parentNode;
+    }
+  }
+
+  // Fallback to current page index
+  const { pageNum } = pdfDocs[currentTab] || { pageNum: 1 };
+  const wrapper = viewMode === 'single' ? wrappers[0] : (wrappers[pageNum - 1] || wrappers[0]);
   return { wrapper, pageNum };
 }
 
@@ -573,26 +591,44 @@ async function generateBookmarkThumbnails(docIndex) {
   }
 }
 
-// Search inside PDF
+// Search inside PDF using text-store
 async function searchInPDF(query) {
-  const { pdf } = pdfDocs[currentTab];
+  const currentDoc = pdfDocs[currentTab];
+  if (!currentDoc) return;
+  
   const resultsContainer = document.getElementById("search-results");
   resultsContainer.innerHTML = "";
 
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const textContent = await page.getTextContent();
-    const text = textContent.items.map((s) => s.str).join(" ");
+  if (!query.trim()) return;
 
+  const filePath = currentDoc.filePath;
+  const { pdf } = currentDoc;
+  
+  for (let i = 1; i <= pdf.numPages; i++) {
+    // Use text-store instead of PDF.js text extraction
+    const text = getPageText(filePath, i);
+    
     if (text.toLowerCase().includes(query.toLowerCase())) {
       const result = document.createElement("div");
       result.textContent = `Found on page ${i}`;
       result.classList.add("search-result");
+      result.style.cursor = "pointer";
+      result.style.padding = "8px";
+      result.style.borderBottom = "1px solid #eee";
       result.addEventListener("click", () => {
         goToPage(i);
       });
       resultsContainer.appendChild(result);
     }
+  }
+  
+  // Show message if no results found
+  if (resultsContainer.children.length === 0) {
+    const noResults = document.createElement("div");
+    noResults.textContent = "No results found";
+    noResults.style.padding = "8px";
+    noResults.style.color = "#666";
+    resultsContainer.appendChild(noResults);
   }
 }
 
@@ -825,6 +861,19 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('fullscreen').addEventListener('click', toggleFullscreen);
   document.getElementById('highlight').addEventListener('click', highlightSelection);
   document.getElementById('underline')?.addEventListener('click', underlineSelection);
+  document.getElementById('export')?.addEventListener('click', async () => {
+    const info = pdfDocs[currentTab];
+    if (!info) {
+      alert('No PDF loaded. Please open a PDF first.');
+      return;
+    }
+    try {
+      await exportCurrentWithAnnotations(info);
+    } catch (e) {
+      console.error('Export failed', e);
+      alert('Export failed.');
+    }
+  });
   document.getElementById('save')?.addEventListener('click', async () => {
     const fileKey = pdfDocs[currentTab]?.filePath;
     if (!fileKey) return;
