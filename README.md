@@ -1,39 +1,82 @@
-Scriptoria : PDF Reader
+#  Scriptoria: Advanced Desktop PDF Reader with AI-Powered Annotations
 
-A desktop PDF reader built using Electron and pdf.js, featuring text highlighting and underline annotation tools.
-This app allows users to open a PDF, highlight text, underline content, and save their annotations locally.
+![Electron](https://img.shields.io/badge/Electron-20232A?style=for-the-badge&logo=electron&logoColor=61DAFB)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![PDF.js](https://img.shields.io/badge/PDF.js-FF0000?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)
 
-🚀 Features
+>  Scriptoria is a **next-generation Desktop PDF Reader with Annotations** built using **Electron** and **pdf.js**, designed for researchers, students, and avid readers who want to go beyond just reading — and start interacting with their documents.
 
-Basic Features  : 
-1. A multi-tabbed interface for viewing PDFs with page thumbnails, 
-bookmarks, and text search. 
-2. A comprehensive annotation suite with tools for highlighting, underlining, 
-and adding sticky notes. 
-3. The ability to save and export all annotations. 
-4. Reader comfort modes, including Dark Mode and a full-screen view. 
+---
 
-Advanced Features : 
-1. An interactive Q&A feature to ask natural language questions about the 
-document. 
-2. A text-to-speech feature to read the document's text aloud. 
-3. A built-in dictionary and the ability to translate selected text. 
+##  Overview
 
-🧩 Tech Stack
+**Scriptoria** is not just a PDF reader — it’s an **intelligent reading companion**.  
+With powerful annotation tools, seamless **text-to-speech (TTS)**, and **AI-powered question answering**, Scriptoria transforms reading into an interactive experience.
 
-Electron – for building the desktop application
+---
 
-pdf.js – for rendering PDF pages
+##  Features
 
-HTML, CSS, JavaScript – for UI and interaction logic
+### Basic Features
+-  **Multi-tab Interface** – Open and read multiple PDFs simultaneously. 
+-  **Page Navigation** – Includes page thumbnails, bookmarks, and search.  
+-  **Annotations** – Highlight, underline, and bookmark key sections.  
+-  **Save & Export** – Save your annotations locally for future reference.  
+-  **Reader Modes** – Dark mode and full-screen view for comfortable reading.
 
-📦 Installation & Setup
-1️⃣ Clone the Repository
-git clone https://github.com/your-username/electron-pdf-reader.git
-cd electron-pdf-reader
+###  Advanced Features
+-  **Interactive Q&A** – Ask natural language questions about the document content.  
+-  **Text-to-Speech (TTS)** – Listen to the PDF text read aloud using modern speech synthesis.  
+-  **Dictionary & Translation** – Instantly look up meanings and translate selected text.
 
-2️⃣ Install Dependencies
-npm install
+---
 
-3️⃣ Run the App
-npm start
+##  Tech Stack
+
+| Layer | Technology |
+|:------|:------------|
+| **Desktop Framework** | Electron |
+| **PDF Rendering** | pdf.js |
+| **Frontend** | HTML, CSS, JavaScript |
+| **Utilities** | Node.js, File System APIs |
+
+---
+
+## Installation and Setup
+
+1. **Clone the Repository**  
+   git clone https://github.com/SoftaBlitz-2k25/Scriptoria.git  
+   cd scriptoria  
+
+2. **Install Dependencies**  
+    npm install  
+
+3. **Run the App**  
+    npm start  
+
+4. **Build Executable**  
+    npm run build  
+
+## Usage Guide  
+
+Open PDF files from your local system.  
+Annotate using the toolbar options (highlight, underline, bookmark).  
+Use Q&A to ask context-based questions about your document.  
+Turn on Text-to-Speech for hands-free reading.  
+Access dictionary and translation for quick learning support.  
+
+## Future Enhancements  
+
+Cloud sync for annotations  
+Encrypted local storage for notes  
+Analytics for reading time and highlights  
+Voice-controlled navigation  
+
+## Contributing  
+
+Contributions, feature requests, and bug reports are welcome!  
+To contribute: 
+Fork the repository  
+Create a feature branch (git checkout -b feature-name)  
+Commit your changes (git commit -m "Added feature XYZ")  
+Push to your branch and create a pull request  
