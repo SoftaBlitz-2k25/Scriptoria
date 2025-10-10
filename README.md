@@ -1,38 +1,82 @@
-#  Scriptoria:
+#  Scriptoria: Advanced Desktop PDF Reader with AI-Powered Annotations
 
-Scriptoria is a **advanced Desktop PDF Reader with Annotations** built using **Electron** and **pdf.js**, featuring rich annotation tools like **highlighting**, **underlining**, **Bookmarks**, and advanced **text-to-speech (TTS)** & **interactive Q&A** capabilities. It helps users read, annotate, and interact with PDFs seamlessly.
+![Electron](https://img.shields.io/badge/Electron-20232A?style=for-the-badge&logo=electron&logoColor=61DAFB)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![PDF.js](https://img.shields.io/badge/PDF.js-FF0000?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)
 
-This project bridges the gap between reading and interactive learning by providing a **full-featured annotation suite** with AI-powered features.
+>  Scriptoria is a **next-generation Desktop PDF Reader with Annotations** built using **Electron** and **pdf.js**, designed for researchers, students, and avid readers who want to go beyond just reading — and start interacting with their documents.
+
+---
+
+##  Overview
+
+**Scriptoria** is not just a PDF reader — it’s an **intelligent reading companion**.  
+With powerful annotation tools, seamless **text-to-speech (TTS)**, and **AI-powered question answering**, Scriptoria transforms reading into an interactive experience.
 
 ---
 
 ##  Features
 
-###  Basic Features
-
--  Multi-tabbed interface for viewing PDFs with **page thumbnails**, **bookmarks**, and **text search**
--  Annotation tools: **Highlight**, **Underline**, **Bookmarks**
--  Save and export annotations locally
--  Reader comfort modes: **Dark Mode** and **Full-Screen View**
+### Basic Features
+-  **Multi-tab Interface** – Open and read multiple PDFs simultaneously. 
+-  **Page Navigation** – Includes page thumbnails, bookmarks, and search.  
+-  **Annotations** – Highlight, underline, and bookmark key sections.  
+-  **Save & Export** – Save your annotations locally for future reference.  
+-  **Reader Modes** – Dark mode and full-screen view for comfortable reading.
 
 ###  Advanced Features
-
--  **Interactive Q&A**: Ask natural language questions about the document
--  **Text-to-Speech**: Read PDF content aloud
--  Built-in **dictionary** and **translation** for selected text
-
----
-
-## 🛠 Tech Stack
-
-| Layer      | Technology                         |
-|------------|------------------------------------|
-| Desktop    | Electron                           |
-| PDF Render | pdf.js                             |
-| Frontend   | HTML, CSS, JavaScript              |
-| Utilities  | Node.js, File System APIs           |
+-  **Interactive Q&A** – Ask natural language questions about the document content.  
+-  **Text-to-Speech (TTS)** – Listen to the PDF text read aloud using modern speech synthesis.  
+-  **Dictionary & Translation** – Instantly look up meanings and translate selected text.
 
 ---
 
-##  Folder Structure
+##  Tech Stack
 
+| Layer | Technology |
+|:------|:------------|
+| **Desktop Framework** | Electron |
+| **PDF Rendering** | pdf.js |
+| **Frontend** | HTML, CSS, JavaScript |
+| **Utilities** | Node.js, File System APIs |
+
+---
+
+## Installation and Setup
+
+1. **Clone the Repository**  
+   git clone https://github.com/SoftaBlitz-2k25/Scriptoria.git  
+   cd scriptoria  
+
+2. **Install Dependencies**  
+    npm install  
+
+3. **Run the App**  
+    npm start  
+
+4. **Build Executable**  
+    npm run build  
+
+## Usage Guide  
+
+Open PDF files from your local system.  
+Annotate using the toolbar options (highlight, underline, bookmark).  
+Use Q&A to ask context-based questions about your document.  
+Turn on Text-to-Speech for hands-free reading.  
+Access dictionary and translation for quick learning support.  
+
+## Future Enhancements  
+
+Cloud sync for annotations  
+Encrypted local storage for notes  
+Analytics for reading time and highlights  
+Voice-controlled navigation  
+
+## Contributing  
+
+Contributions, feature requests, and bug reports are welcome!  
+To contribute: 
+Fork the repository  
+Create a feature branch (git checkout -b feature-name)  
+Commit your changes (git commit -m "Added feature XYZ")  
+Push to your branch and create a pull request  
